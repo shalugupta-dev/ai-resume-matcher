@@ -1,0 +1,9 @@
+
+Flask
+Flask-SQLAlchemy
+Flask-Login
+Flask-WTF
+PyMuPDF
+scikit-learn
+sentence-transformers
+gunicorn
