@@ -1,0 +1,39 @@
+
+{% extends "base.html" %}
+{% block title %}Log In | ResumeAI{% endblock %}
+
+{% block content %}
+<div class="auth-layout">
+    <section class="auth-intro">
+        <span class="pill">WELCOME BACK</span>
+        <h1>Your next opportunity starts with <span>clarity.</span></h1>
+        <p>Log in to continue reviewing your resume insights and analysis history.</p>
+    </section>
+
+    <section class="content-card auth-card">
+        <span class="eyebrow">YOUR WORKSPACE</span>
+        <h2>Log in</h2>
+        <p class="muted">Enter your account details below.</p>
+
+        <form method="POST" action="{{ url_for('login', next=request.args.get('next')) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="field">
+                <label for="username">Username</label>
+                <input id="username" name="username" type="text"
+                       autocomplete="username" required>
+            </div>
+
+            <div class="field">
+                <label for="password">Password</label>
+                <input id="password" name="password" type="password"
+                       autocomplete="current-password" required>
+            </div>
+
+            <button class="button button-primary button-full" type="submit">Log in →</button>
+        </form>
+
+        <p class="auth-switch">New to ResumeAI? <a href="{{ url_for('register') }}">Create an account</a></p>
+    </section>
+</div>
+{% endblock %}

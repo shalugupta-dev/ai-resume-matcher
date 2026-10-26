@@ -1,0 +1,96 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Analyze resumes and compare skills with job descriptions.">
+    <title>{% block title %}ResumeAI{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <a class="brand" href="{{ url_for('index') }}">
+                <span class="brand-mark">R</span>
+                <span>Resume<span class="brand-light">AI</span></span>
+            </a>
+
+            <p class="nav-label">WORKSPACE</p>
+            <nav class="nav-links">
+                <a class="nav-link {% if request.endpoint == 'index' %}active{% endif %}"
+                   href="{{ url_for('index') }}">
+                    <span>⌂</span> Overview
+                </a>
+                {% if current_user.is_authenticated %}
+                <a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}"
+                   href="{{ url_for('dashboard') }}">
+                    <span>▤</span> Analysis History
+                </a>
+                {% endif %}
+            </nav>
+
+            <div class="sidebar-bottom">
+                <div class="sidebar-note">
+                    <span class="note-icon">✦</span>
+                    <strong>Career toolkit</strong>
+                    <p>Find skill gaps and improve your resume for your target role.</p>
+                </div>
+
+                {% if current_user.is_authenticated %}
+                <div class="profile-row">
+                    <div class="avatar">{{ current_user.username[0]|upper }}</div>
+                    <div class="profile-info">
+                        <strong>{{ current_user.username }}</strong>
+                        <small>Personal workspace</small>
+                    </div>
+                    <form action="{{ url_for('logout') }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button class="icon-button" type="submit" title="Log out" aria-label="Log out">↗</button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+        </aside>
+
+        <main class="main-area">
+            <header class="topbar">
+                <div>
+                    <span class="eyebrow">RESUME INTELLIGENCE</span>
+                    <div class="topbar-title">Your career workspace</div>
+                </div>
+                <div class="topbar-actions">
+                    {% if current_user.is_authenticated %}
+                        <span class="signed-in"><span class="online-dot"></span> Signed in</span>
+                    {% else %}
+                        <a class="button button-quiet button-small" href="{{ url_for('login') }}">Log in</a>
+                        <a class="button button-primary button-small" href="{{ url_for('register') }}">Create account</a>
+                    {% endif %}
+                </div>
+            </header>
+
+            <div class="page-content">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                    <div class="flash-stack" aria-live="polite">
+                        {% for category, message in messages %}
+                        <div class="flash flash-{{ category }}">
+                            <span>{{ '✓' if category == 'success' else '!' }}</span>
+                            <p>{{ message }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                {% endwith %}
+
+                {% block content %}{% endblock %}
+            </div>
+
+            <footer class="footer">
+                <span>ResumeAI · Resume insights for your next opportunity</span>
+                <span>Built with Flask</span>
+            </footer>
+        </main>
+    </div>
+</body>
+</html>

@@ -1,0 +1,141 @@
+
+{% extends "base.html" %}
+{% block title %}Overview | ResumeAI{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="hero-copy">
+        <span class="pill"><span class="online-dot"></span> SMART RESUME ANALYSIS</span>
+        <h1>Make your next application <span>stand out.</span></h1>
+        <p>Compare your resume with a target role, discover skill gaps and get practical ideas to strengthen your application.</p>
+        {% if not current_user.is_authenticated %}
+        <div class="hero-actions">
+            <a class="button button-primary" href="{{ url_for('register') }}">Get started <span>→</span></a>
+            <a class="button button-quiet" href="{{ url_for('login') }}">I have an account</a>
+        </div>
+        {% endif %}
+    </div>
+    <div class="hero-art" aria-hidden="true">
+        <div class="art-orbit orbit-one"></div>
+        <div class="art-orbit orbit-two"></div>
+        <div class="art-document">
+            <div class="art-doc-top"><span></span><span></span><span></span></div>
+            <div class="art-avatar"></div>
+            <div class="art-line line-wide"></div>
+            <div class="art-line"></div>
+            <div class="art-section-label">SKILLS MATCH</div>
+            <div class="art-progress"><span></span></div>
+            <div class="art-mini-grid"><i></i><i></i><i></i><i></i></div>
+        </div>
+        <div class="floating-chip">✦ Skill insights</div>
+        <div class="floating-score"><strong>AI</strong><span>Resume review</span></div>
+    </div>
+</section>
+
+<section class="stats-grid">
+    <article class="stat-card">
+        <div class="stat-icon icon-purple">▤</div>
+        <p class="stat-label">Analyses completed</p>
+        <div class="stat-value">{{ total }}</div>
+        <p class="stat-foot">Saved to your workspace</p>
+    </article>
+    <article class="stat-card">
+        <div class="stat-icon icon-green">✓</div>
+        <p class="stat-label">Skill comparison</p>
+        <div class="stat-value">Detailed</div>
+        <p class="stat-foot">Matched and missing skills</p>
+    </article>
+    <article class="stat-card">
+        <div class="stat-icon icon-orange">✦</div>
+        <p class="stat-label">Resume insights</p>
+        <div class="stat-value">Actionable</div>
+        <p class="stat-foot">Sections and improvement tips</p>
+    </article>
+</section>
+
+{% if current_user.is_authenticated %}
+<section class="section-heading">
+    <div>
+        <span class="eyebrow">ANALYSIS WORKSPACE</span>
+        <h2>Analyze your resume</h2>
+        <p>Upload a text-based PDF and paste the job description.</p>
+    </div>
+    <span class="secure-label">🔒 Private workspace</span>
+</section>
+
+<section class="content-card">
+    <form action="{{ url_for('analyze') }}" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="form-grid">
+            <div class="field">
+                <label for="job_title">Target job title</label>
+                <input id="job_title" name="job_title" type="text" maxlength="150"
+                       placeholder="e.g. Python Developer" required>
+            </div>
+
+            <div class="field">
+                <label for="resume">Resume PDF</label>
+                <input id="resume" name="resume" type="file"
+                       accept=".pdf,application/pdf" required>
+                <small>PDF only · Maximum 5 MB</small>
+            </div>
+        </div>
+
+        <div class="field">
+            <label for="job_description">Job description</label>
+            <textarea id="job_description" name="job_description"
+                      rows="7" maxlength="30000"
+                      placeholder="Paste the role responsibilities, required skills, tools and qualifications here..."
+                      required></textarea>
+            <small>Tip: A detailed job description gives you a more useful keyword comparison.</small>
+        </div>
+
+        <div class="form-footer">
+            <span class="form-hint">Your uploaded PDF is processed temporarily and not stored as a resume file.</span>
+            <button class="button button-primary" type="submit">Analyze resume <span>→</span></button>
+        </div>
+    </form>
+</section>
+
+<section class="section-heading history-heading">
+    <div>
+        <span class="eyebrow">YOUR ACTIVITY</span>
+        <h2>Recent analyses</h2>
+    </div>
+    <a class="text-link" href="{{ url_for('dashboard') }}">View all →</a>
+</section>
+
+<section class="content-card table-card">
+    {% if recent %}
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Target role</th><th>Resume file</th><th>Keyword match</th><th>Date</th></tr></thead>
+            <tbody>
+            {% for item in recent %}
+            <tr>
+                <td><strong>{{ item.job_title }}</strong></td>
+                <td>{{ item.filename }}</td>
+                <td><span class="score-pill">{{ item.match_score }}%</span></td>
+                <td>{{ item.created_at.strftime('%d %b %Y') if item.created_at else '—' }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">▤</div>
+        <h3>Your analysis history will appear here</h3>
+        <p>Complete your first resume analysis to start building your history.</p>
+    </div>
+    {% endif %}
+</section>
+{% else %}
+<section class="feature-grid">
+    <article class="feature-card"><div class="feature-icon">⌕</div><h3>Resume insights</h3><p>Extract readable text and identify common resume sections.</p></article>
+    <article class="feature-card"><div class="feature-icon">◎</div><h3>Skill matching</h3><p>Compare detected skills with the requirements of a target role.</p></article>
+    <article class="feature-card"><div class="feature-icon">↗</div><h3>Next steps</h3><p>Get suggestions to help you focus your resume improvements.</p></article>
+</section>
+{% endif %}
+{% endblock %}

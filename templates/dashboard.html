@@ -1,0 +1,307 @@
+
+{% extends "base.html" %}
+{% block title %}Analytics Dashboard | ResumeAI{% endblock %}
+
+{% block content %}
+<style>
+.analytics-page { display: grid; gap: 22px; }
+.analytics-header { display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; }
+.analytics-header h1 { margin: 6px 0; }
+.analytics-muted { color: var(--text-muted, #788398); font-size: 13px; }
+.analytics-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:15px; }
+.analytics-card { min-width:0; padding:20px; border:1px solid var(--border,#e7eaf0); border-radius:16px; background:var(--card,#fff); }
+.analytics-card .metric { display:block; font-size:30px; font-weight:750; margin:12px 0 5px; }
+.analytics-card .metric-label { color:var(--text-muted,#788398); font-size:13px; }
+.analytics-card .metric-icon { font-size:20px; }
+.analytics-panels { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
+.analytics-panel { min-width:0; padding:22px; border:1px solid var(--border,#e7eaf0); border-radius:16px; background:var(--card,#fff); }
+.analytics-panel h2 { font-size:17px; margin:0 0 6px; }
+.analytics-chart { position:relative; height:280px; margin-top:20px; }
+.analytics-table-wrap { overflow-x:auto; }
+.analytics-table { width:100%; border-collapse:collapse; text-align:left; }
+.analytics-table th,.analytics-table td { padding:14px 12px; border-bottom:1px solid var(--border,#e7eaf0); white-space:nowrap; }
+.analytics-table th { color:var(--text-muted,#788398); font-size:12px; font-weight:600; }
+.analytics-table td { font-size:13px; }
+.analytics-score { font-weight:750; }
+.analytics-progress { display:inline-block; width:90px; height:6px; border-radius:10px; background:#e9edf4; overflow:hidden; vertical-align:middle; margin-right:8px; }
+.analytics-progress span { display:block; height:100%; background:#6575e8; border-radius:10px; }
+.analytics-empty { padding:25px 10px; text-align:center; color:var(--text-muted,#788398); }
+.analytics-empty a { display:inline-block; margin-top:10px; }
+.analytics-skills { display:flex; flex-wrap:wrap; gap:8px; margin-top:18px; }
+.analytics-skill { padding:7px 10px; border-radius:8px; background:var(--surface,#f3f5f9); font-size:12px; }
+.analytics-skill strong { margin-left:5px; }
+.analytics-actions { display:flex; gap:10px; flex-wrap:wrap; }
+@media(max-width:900px) {
+  .analytics-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .analytics-panels { grid-template-columns:1fr; }
+}
+@media(max-width:480px) {
+  .analytics-grid { grid-template-columns:1fr 1fr; gap:10px; }
+  .analytics-card,.analytics-panel { padding:14px; }
+  .analytics-card .metric { font-size:24px; }
+  .analytics-chart { height:240px; }
+}
+</style>
+
+<div class="analytics-page">
+    <header class="analytics-header">
+        <div>
+            <span class="eyebrow">PERFORMANCE OVERVIEW</span>
+            <h1>Analytics Dashboard</h1>
+            <p class="analytics-muted">
+                Track your resume match scores, skills and job targets.
+            </p>
+        </div>
+        <div class="analytics-actions">
+            <a class="button button-primary" href="{{ url_for('index') }}">
+                + Analyze resume
+            </a>
+        </div>
+    </header>
+
+    <section class="analytics-grid">
+        <article class="analytics-card">
+            <span class="metric-icon">📄</span>
+            <span class="metric">{{ analytics.total_analyses }}</span>
+            <span class="metric-label">Total analyses</span>
+        </article>
+        <article class="analytics-card">
+            <span class="metric-icon">🎯</span>
+            <span class="metric">{{ analytics.average_score }}%</span>
+            <span class="metric-label">Average match score</span>
+        </article>
+        <article class="analytics-card">
+            <span class="metric-icon">🏆</span>
+            <span class="metric">{{ analytics.best_score }}%</span>
+            <span class="metric-label">Best match score</span>
+        </article>
+        <article class="analytics-card">
+            <span class="metric-icon">✅</span>
+            <span class="metric">{{ analytics.total_matched_skills }}</span>
+            <span class="metric-label">Matched skill occurrences</span>
+        </article>
+    </section>
+
+    {% if analyses %}
+    <section class="analytics-panels">
+        <article class="analytics-panel">
+            <h2>Match score trend</h2>
+            <p class="analytics-muted">Your saved analyses, from oldest to newest.</p>
+            <div class="analytics-chart">
+                <canvas id="scoreTrendChart" role="img"
+                    aria-label="Line chart of resume match scores over time"></canvas>
+            </div>
+        </article>
+
+        <article class="analytics-panel">
+            <h2>Skills overview</h2>
+            <p class="analytics-muted">
+                Counts are based on the skill lists saved with your analyses.
+            </p>
+            <div class="analytics-chart">
+                <canvas id="skillsChart" role="img"
+                    aria-label="Doughnut chart of matched and missing skills"></canvas>
+            </div>
+        </article>
+
+        <article class="analytics-panel">
+            <h2>Most common missing skills</h2>
+            <p class="analytics-muted">
+                Use these results to prioritize learning and resume tailoring.
+            </p>
+            {% if analytics.top_missing_labels %}
+            <div class="analytics-chart">
+                <canvas id="missingSkillsChart" role="img"
+                    aria-label="Bar chart of frequently missing skills"></canvas>
+            </div>
+            {% else %}
+            <div class="analytics-empty">
+                No missing skills recorded in your analysis history.
+            </div>
+            {% endif %}
+        </article>
+
+        <article class="analytics-panel">
+            <h2>Target job roles</h2>
+            <p class="analytics-muted">Your most frequently analyzed job titles.</p>
+            {% if analytics.role_labels %}
+            <div class="analytics-chart">
+                <canvas id="rolesChart" role="img"
+                    aria-label="Bar chart of target job roles"></canvas>
+            </div>
+            {% else %}
+            <div class="analytics-empty">No job roles available yet.</div>
+            {% endif %}
+        </article>
+    </section>
+
+    <section class="analytics-panel">
+        <h2>Recent analysis history</h2>
+        <p class="analytics-muted">Your latest saved resume comparisons.</p>
+        <div class="analytics-table-wrap">
+            <table class="analytics-table">
+                <thead>
+                    <tr>
+                        <th>Target role</th>
+                        <th>Match score</th>
+                        <th>Matched skills</th>
+                        <th>Missing skills</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in analyses[:10] %}
+                    <tr>
+                        <td>{{ item.job_title }}</td>
+                        <td>
+                            <span class="analytics-progress">
+                                <span style="width:{{ [[item.match_score|int, 0]|max, 100]|min }}%"></span>
+                            </span>
+                            <span class="analytics-score">{{ item.match_score }}%</span>
+                        </td>
+                        <td>{{ item.matched_skills or '—' }}</td>
+                        <td>{{ item.missing_skills or '—' }}</td>
+                        <td>
+                            {{ item.created_at.strftime('%d %b %Y') if item.created_at else '—' }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    {% else %}
+    <section class="analytics-panel analytics-empty">
+        <h2>No analytics yet</h2>
+        <p>Analyze your first resume to start building your dashboard.</p>
+        <a class="button button-primary" href="{{ url_for('index') }}">
+            Analyze your first resume
+        </a>
+    </section>
+    {% endif %}
+</div>
+
+{% if analyses %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    if (typeof Chart === "undefined") {
+        console.warn("Chart.js could not load. Check your internet connection.");
+        return;
+    }
+
+    const scoreLabels = {{ analytics.score_labels|tojson }};
+    const scoreValues = {{ analytics.score_values|tojson }};
+    const skillLabels = {{ analytics.skill_labels|tojson }};
+    const skillValues = {{ analytics.skill_values|tojson }};
+    const missingLabels = {{ analytics.top_missing_labels|tojson }};
+    const missingValues = {{ analytics.top_missing_values|tojson }};
+    const roleLabels = {{ analytics.role_labels|tojson }};
+    const roleValues = {{ analytics.role_values|tojson }};
+
+    const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false }
+        }
+    };
+
+    new Chart(document.getElementById("scoreTrendChart"), {
+        type: "line",
+        data: {
+            labels: scoreLabels,
+            datasets: [{
+                label: "Match score",
+                data: scoreValues,
+                borderColor: "#6575e8",
+                backgroundColor: "rgba(101,117,232,0.12)",
+                fill: true,
+                tension: 0.3,
+                pointRadius: 4
+            }]
+        },
+        options: {
+            ...commonOptions,
+            scales: {
+                y: {
+                    min: 0,
+                    max: 100,
+                    ticks: { callback: value => value + "%" }
+                }
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: context => "Match score: " + context.parsed.y + "%"
+                    }
+                }
+            }
+        }
+    });
+
+    new Chart(document.getElementById("skillsChart"), {
+        type: "doughnut",
+        data: {
+            labels: skillLabels,
+            datasets: [{
+                data: skillValues,
+                backgroundColor: ["#25a879", "#ed9b43"],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            ...commonOptions,
+            plugins: {
+                legend: { display: true, position: "bottom" }
+            },
+            cutout: "66%"
+        }
+    });
+
+    const missingCanvas = document.getElementById("missingSkillsChart");
+    if (missingCanvas) {
+        new Chart(missingCanvas, {
+            type: "bar",
+            data: {
+                labels: missingLabels,
+                datasets: [{
+                    label: "Occurrences",
+                    data: missingValues,
+                    backgroundColor: "#ed9b43",
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                ...commonOptions,
+                indexAxis: "y",
+                scales: { x: { beginAtZero: true, ticks: { precision: 0 } } }
+            }
+        });
+    }
+
+    const rolesCanvas = document.getElementById("rolesChart");
+    if (rolesCanvas) {
+        new Chart(rolesCanvas, {
+            type: "bar",
+            data: {
+                labels: roleLabels,
+                datasets: [{
+                    label: "Analyses",
+                    data: roleValues,
+                    backgroundColor: "#6575e8",
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                ...commonOptions,
+                scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+            }
+        });
+    }
+});
+</script>
+{% endif %}
+{% endblock %}

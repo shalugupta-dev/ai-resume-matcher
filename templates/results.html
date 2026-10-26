@@ -1,0 +1,67 @@
+
+<section class="results-grid">
+    <article class="content-card score-card">
+        <span class="eyebrow">AI RESUME MATCH</span>
+
+        <div class="score-ring" style="--score: {{ result.score * 3.6 }}deg">
+            <div class="score-ring-inner">
+                <strong>{{ result.score }}%</strong>
+                <span>Overall match</span>
+            </div>
+        </div>
+
+        <h3>
+            {% if result.score >= 75 %}
+                Strong overall match
+            {% elif result.score >= 45 %}
+                Moderate overall match
+            {% else %}
+                Room to improve
+            {% endif %}
+        </h3>
+
+        <p>
+            Combined estimate based on skill overlap and text similarity.
+            This is not an official ATS score or a hiring prediction.
+        </p>
+
+        <div class="summary-stat">
+            <span>Keyword score</span>
+            <strong>{{ result.keyword_score }}%</strong>
+        </div>
+
+        <div class="summary-stat">
+            <span>Semantic similarity</span>
+            <strong>{{ result.semantic_score }}%</strong>
+        </div>
+
+        <div class="summary-stat">
+            <span>Matching method</span>
+            <strong>{{ result.matching_method }}</strong>
+        </div>
+    </article>
+
+    <article class="content-card summary-card">
+        <span class="eyebrow">SKILL SUMMARY</span>
+
+        <div class="summary-stat">
+            <span>Required skills detected</span>
+            <strong>{{ result.total_required }}</strong>
+        </div>
+
+        <div class="summary-stat">
+            <span>Skills matched</span>
+            <strong class="text-success">{{ result.total_matched }}</strong>
+        </div>
+
+        <div class="summary-stat">
+            <span>Skills to review</span>
+            <strong class="text-warning">{{ result.missing_skills|length }}</strong>
+        </div>
+
+        <div class="summary-stat">
+            <span>Resume word count</span>
+            <strong>{{ resume_data.word_count }}</strong>
+        </div>
+    </article>
+</section>

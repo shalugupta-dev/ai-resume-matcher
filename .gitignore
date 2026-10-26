@@ -1,0 +1,13 @@
+
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.env
+instance/
+resume_matcher.db
+resume_matcher.db-journal
+resume_matcher.db-wal
+resume_matcher.db-shm
+uploads/
+*.log
